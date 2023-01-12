@@ -20,7 +20,7 @@ def select_operation(listOfOperation):
             print(index, operation)
 
         try:
-            index = int(input("What would you like to do ?"))
+            index = int(input("\nWhat would you like to do ?"))
 
             if index <= len(listOfOperation) - 1:
                 return index
@@ -42,10 +42,69 @@ def add_item():
     while True:
         name = input('Item name:')
         quantity = input('Quantity:')
-    pass
+        unit = input('Unit name:')
+        unitPrice = input('Unit Price (PLN):')
+
+        print(
+            f'You wont to add {name},{quantity},{unit},{unitPrice}.')
+        answer = input('Are these details correct? (y/n) ')
+
+        if answer in ['yes', 'y', 'YES', 'Y']:
+
+            listOfInput = [name, quantity, unit, unitPrice]
+            i = 0
+
+            for dict in items:
+                items[dict].append(listOfInput[i])
+                i += 1
+            print('Successfully added to storage. Current status:')
+            get_items()
+            break
+        else:
+            print('Item has not been added.')
+            logging.debug("Incorrect item")
+            break
 
 
-operations = ['Exit', 'Show your storage', 'Add new item']
+def sell_item():
+    while True:
+        try:
+            name = input('Item name:')
+            listOfName = items['Name']
+            index = listOfName.index(name)
+
+            if name in listOfName:
+                quantity = int(input('The quantity you want to sell:'))
+                maxQuantity = items['Quantity'][index]
+                unit = items['Unit'][index]
+
+                if items['Quantity'][index] - quantity < 0:
+                    logging.info(f'Not enough {name}')
+                    answer = input(
+                        f'Are you want to sell maximum of {name} - {maxQuantity}? (y/n) ')
+
+                    if answer in ['yes', 'y', 'YES', 'Y']:
+                        zeroQuantity = items['Quantity'][index]
+                        print(
+                            f'Successfully sold {zeroQuantity} {unit} of {name}')
+                        items['Quantity'][index] = 0
+                        get_items()
+                        break
+
+                else:
+                    items['Quantity'][index] -= quantity
+                    print(
+                        f'Successfully sold {quantity} {unit} of {name}')
+                    get_items()
+                break
+
+        except ValueError:
+            print('Wrong name of product')
+            logging.debug('Wrong name of product')
+            break
+
+
+operations = ['Exit', 'Show your storage', 'Add new item', 'Sell item']
 
 
 if __name__ == "__main__":
@@ -62,3 +121,7 @@ if __name__ == "__main__":
         elif index == 2:
             print('Adding to storage...')
             add_item()
+
+        elif index == 3:
+            print('Selling item...')
+            sell_item()
