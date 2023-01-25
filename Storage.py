@@ -1,5 +1,5 @@
-from fileinput import close
 from tabulate import tabulate
+from csv import DictWriter
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -12,6 +12,7 @@ items = {'Name': ['Petrol', 'Sand', 'Rope'],
          'Unit': ['l', 't', 'm'],
          'Unit Price (PLN)': [7, 15, 4]
          }
+
 
 soldItems = {'Name': [],
              'Quantity': [],
@@ -44,7 +45,6 @@ def select_operation(listOfOperation):
 
 def add_to_soldItems(name, quantity, unit, unitPrice):
     listOfName = soldItems['Name']
-    index = listOfName.index(name)
 
     if name not in listOfName:
         soldItems['Name'].append(name)
@@ -52,6 +52,7 @@ def add_to_soldItems(name, quantity, unit, unitPrice):
         soldItems['Unit'].append(unit)
         soldItems['Unit Price (PLN)'].append(unitPrice)
     else:
+        index = listOfName.index(name)
         soldItems['Quantity'][index] += quantity
 
 
@@ -86,66 +87,91 @@ Revenue: {revenue} PLN''')
 
 def add_item():
     while True:
-        name = input('Item name:')
-        quantity = input('Quantity:')
-        unit = input('Unit name:')
-        unitPrice = input('Unit Price (PLN):')
+        nameByUser = input('Item name:')
+        name = nameByUser.lower()
 
-        print(
-            f'You wont to add {name},{quantity},{unit},{unitPrice}.')
-        answer = input('Are these details correct? (y/n) ')
+        # compare only small letters
+        compName = []
+        for label in items['Name']:
+            compName.append((label.lower()))
 
-        if answer in ['yes', 'y', 'YES', 'Y']:
-
-            listOfInput = [name, quantity, unit, unitPrice]
-            i = 0
-
-            for dict in items:
-                items[dict].append(listOfInput[i])
-                i += 1
-            print('Successfully added to storage. Current status:')
+        if name in compName:
+            quantity = int(input('Quantity:'))
+            index = compName.index(name)
+            items['Quantity'][index] += quantity
+            print(
+                f'Successfully added to {name.capitalize()}. Current status:')
             get_items(items)
             break
+
         else:
-            print('Item has not been added.')
-            logging.debug("Incorrect item")
-            break
+            quantity = int(input('Quantity:'))
+            unit = input('Unit name:')
+            unitPrice = int(input('Unit Price (PLN):'))
+            print(
+                f'You wont to add {name.capitalize()},{quantity},{unit},{unitPrice}.')
+            answer = input('Are these details correct? (y/n) ')
+
+            if answer in ['yes', 'y', 'YES', 'Y']:
+
+                listOfInput = [name.capitalize(), quantity, unit, unitPrice]
+                i = 0
+
+                for dict in items:
+                    items[dict].append(listOfInput[i])
+                    i += 1
+                print('Successfully added to storage. Current status:')
+                get_items(items)
+                break
+
+            else:
+                print('Item has not been added.')
+                logging.debug("Incorrect item")
+                break
 
 
 def sell_item():
     while True:
         try:
-            name = input('Item name:')
-            listOfName = items['Name']
-            index = listOfName.index(name)
+            nameByUser = input('Item name:')
+            name = nameByUser.lower()
 
-            if name in listOfName:
+            # compare only small letters
+            compName = []
+            for label in items['Name']:
+                compName.append((label.lower()))
+
+            if name in compName:
+                index = compName.index(name)
                 quantity = int(input('The quantity you want to sell:'))
                 logging.debug('Wrong type of input')
+
                 maxQuantity = items['Quantity'][index]
                 unit = items['Unit'][index]
                 unitPrice = items['Unit Price (PLN)'][index]
 
                 if int(items['Quantity'][index]) - quantity < 0:
-                    logging.info(f'Not enough {name}')
+                    logging.info(f'Not enough {name.capitalize()}')
                     answer = input(
-                        f'Are you want to sell maximum of {name} - {maxQuantity}? (y/n) ')
+                        f'Are you want to sell maximum of {name.capitalize()} - {maxQuantity}? (y/n) ')
 
                     if answer in ['yes', 'y', 'YES', 'Y']:
                         zeroQuantity = items['Quantity'][index]
                         print(
-                            f'Successfully sold {zeroQuantity} {unit} of {name}')
+                            f'Successfully sold {zeroQuantity} {unit} of {name.capitalize()}')
                         items['Quantity'][index] = 0
                         get_items(items)
-                        add_to_soldItems(name, quantity, unit, unitPrice)
+                        add_to_soldItems(name.capitalize(),
+                                         quantity, unit, unitPrice)
                         break
 
                 else:
                     items['Quantity'][index] -= quantity
                     print(
-                        f'Successfully sold {quantity} {unit} of {name}')
+                        f'Successfully sold {quantity} {unit} of {name.capitalize()}')
                     get_items(items)
-                    add_to_soldItems(name, quantity, unit, unitPrice)
+                    add_to_soldItems(name.capitalize(),
+                                     quantity, unit, unitPrice)
 
                 break
 
@@ -154,8 +180,16 @@ def sell_item():
             break
 
 
+def export_items_to_csv(dict):
+    with open('storage.csv', 'w', newline='') as csvfile:
+        fieldnames = ['sss', 'ddsd']
+        writer = DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writerows(dict)
+    pass
+
+
 operations = ['Exit', 'Show your storage',
-              'Add new item', 'Sell item', 'Show revenue']
+              'Add new item', 'Sell item', 'Show revenue', 'Save']
 
 
 if __name__ == "__main__":
@@ -181,3 +215,7 @@ if __name__ == "__main__":
         elif index == 4:
             print('Revenue breakdown (PLN)...')
             show_revenue(items, soldItems)
+
+        elif index == 5:
+            print('...')
+            export_items_to_csv(items)
