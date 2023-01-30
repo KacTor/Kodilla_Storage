@@ -182,10 +182,10 @@ def sell_item():
 
 def export_items_to_csv(dict):
     with open('storage.csv', 'w', newline='') as csvfile:
-        fieldnames = ['sss', 'ddsd']
+        fieldnames = ['sss', 'ddsd', '\n']
         writer = DictWriter(csvfile, fieldnames=fieldnames)
         writer.writerows(dict)
-    pass
+    
 
 
 operations = ['Exit', 'Show your storage',
